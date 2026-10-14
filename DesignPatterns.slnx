@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Core/">
+    <Project Path="src/Core/UniversalPaymentTerminal.Application/UniversalPaymentTerminal.Application.csproj" />
+    <Project Path="src/Core/UniversalPaymentTerminal.Domain/UniversalPaymentTerminal.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Infrastructure/">
+    <Project Path="src/Infrastructure/UniversalPaymentTerminal.Infrastructure/UniversalPaymentTerminal.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Presentation/">
+    <Project Path="src/Presentation/UniversalPaymentTerminal.API/UniversalPaymentTerminal.API.csproj" />
+  </Folder>
+</Solution>
