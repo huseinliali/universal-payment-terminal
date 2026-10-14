@@ -5,3 +5,10 @@ public record ServiceValidationResult(
     string CustomerName,
     decimal OutstandingAmount,
     string Currency);
+
+public record PaymentResultDto(
+    bool Success,
+    decimal Amount,
+    decimal CommissionAmount,
+    decimal TotalAmount,
+    string Currency);

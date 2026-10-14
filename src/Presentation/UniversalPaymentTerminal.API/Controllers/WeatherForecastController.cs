@@ -36,7 +36,7 @@ public class PaymentsController : ControllerBase
 
     [HttpPost("payments")]
     public async Task<IActionResult> Pay(
-        [FromBody] PayRequest request)
+    [FromBody] PayRequest request)
     {
         var result = await _service.PayAsync(
             request.ProviderId,
@@ -44,7 +44,7 @@ public class PaymentsController : ControllerBase
             request.Amount,
             request.Currency);
 
-        return Ok(new { Success = result });
+        return Ok(result);
     }
 }
 

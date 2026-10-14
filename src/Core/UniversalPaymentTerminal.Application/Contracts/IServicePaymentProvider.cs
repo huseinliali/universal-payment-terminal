@@ -22,3 +22,10 @@ public interface IPaymentMethod
         decimal amount,
         string currency);
 }
+
+public interface IPaymentMethodDecoratorFactory
+{
+    IPaymentMethod Create(
+        IPaymentMethod paymentMethod,
+        PaymentCategory category);
+}

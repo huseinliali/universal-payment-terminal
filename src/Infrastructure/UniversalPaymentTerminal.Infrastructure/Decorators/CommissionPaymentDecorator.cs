@@ -1,22 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using UniversalPaymentTerminal.Application.Contracts;
+﻿using UniversalPaymentTerminal.Application.Contracts;
 using UniversalPaymentTerminal.Domain.Enums;
 
 namespace UniversalPaymentTerminal.Infrastructure.Decorators;
 
-public class CommissionPaymentDecorator : IPaymentMethod
+public sealed class CommissionPaymentDecorator : IPaymentMethod
 {
     private readonly IPaymentMethod _inner;
-    private readonly decimal _fee;
+    private readonly decimal _commissionRate;
 
     public CommissionPaymentDecorator(
         IPaymentMethod inner,
-        decimal fee)
+        decimal commissionRate)
     {
+        if (commissionRate < 0 || commissionRate > 1)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(commissionRate));
+        }
+
         _inner = inner;
-        _fee = fee;
+        _commissionRate = commissionRate;
     }
 
     public PaymentMethodType Method => _inner.Method;
@@ -25,8 +28,13 @@ public class CommissionPaymentDecorator : IPaymentMethod
         decimal amount,
         string currency)
     {
-        return _inner.PayAsync(
-            amount + _fee,
-            currency);
+        var commission = Math.Round(
+            amount * _commissionRate,
+            2,
+            MidpointRounding.AwayFromZero);
+
+        var totalAmount = amount + commission;
+
+        return _inner.PayAsync(totalAmount, currency);
     }
 }

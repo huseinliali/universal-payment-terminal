@@ -1,4 +1,5 @@
 ﻿using UniversalPaymentTerminal.Application.Contracts;
+using UniversalPaymentTerminal.Application.Models;
 using UniversalPaymentTerminal.Domain.Enums;
 
 namespace UniversalPaymentTerminal.Application.Services;
@@ -7,13 +8,16 @@ public class PaymentService
 {
     private readonly IEnumerable<IServicePaymentProvider> _providers;
     private readonly IEnumerable<IPaymentMethod> _methods;
+    private readonly IPaymentMethodDecoratorFactory _decoratorFactory;
 
     public PaymentService(
-        IEnumerable<IServicePaymentProvider> providers,
-        IEnumerable<IPaymentMethod> methods)
+    IEnumerable<IServicePaymentProvider> providers,
+    IEnumerable<IPaymentMethod> methods,
+    IPaymentMethodDecoratorFactory decoratorFactory)
     {
         _providers = providers;
         _methods = methods;
+        _decoratorFactory = decoratorFactory;
     }
 
     public IEnumerable<object> GetCategories() =>
@@ -40,11 +44,12 @@ public class PaymentService
             customerIdentifier);
     }
 
-    public async Task<bool> PayAsync(
-        string providerId,
-        PaymentMethodType method,
-        decimal amount,
-        string currency)
+
+    public async Task<PaymentResultDto> PayAsync(
+    string providerId,
+    PaymentMethodType method,
+    decimal amount,
+    string currency)
     {
         var provider = _providers.FirstOrDefault(
             p => p.ProviderId == providerId);
@@ -53,10 +58,61 @@ public class PaymentService
             m => m.Method == method);
 
         if (provider is null || paymentMethod is null)
+        {
             throw new ArgumentException(
                 "Provider or payment method not found.");
+        }
 
-        return await paymentMethod.PayAsync(
-            amount, currency);
+        if (amount <= 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(amount),
+                "Amount must be greater than zero.");
+        }
+
+        var rate = PaymentCommissionPolicy.GetRate(
+            provider.Category);
+
+        var commission = Math.Round(
+            amount * rate,
+            2,
+            MidpointRounding.AwayFromZero);
+
+        var totalAmount = amount + commission;
+
+        var decoratedPaymentMethod = _decoratorFactory.Create(
+            paymentMethod,
+            provider.Category);
+
+        var success = await decoratedPaymentMethod.PayAsync(
+            amount,
+            currency);
+
+        return new PaymentResultDto(
+            success,
+            amount,
+            commission,
+            totalAmount,
+            currency);
+    }
+
+}
+
+public static class PaymentCommissionPolicy
+{
+    public static decimal GetRate(PaymentCategory category)
+    {
+        return category switch
+        {
+            PaymentCategory.Education => 0m,
+            PaymentCategory.Utility => 0.01m,
+            PaymentCategory.Bank => 0.015m,
+            PaymentCategory.Fine => 0m,
+
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(category),
+                category,
+                "Unsupported payment category.")
+        };
     }
 }
