@@ -2,7 +2,7 @@
 
 public enum PaymentMethodType
 {
-    Paypal,
+    PayPal,
     ApplePay,
     GooglePay
 }

@@ -7,11 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\UniversalPaymentTerminal.Domain\UniversalPaymentTerminal.Domain.csproj" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.13" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Services\" />
+    <ProjectReference Include="..\UniversalPaymentTerminal.Domain\UniversalPaymentTerminal.Domain.csproj" />
   </ItemGroup>
 
 </Project>

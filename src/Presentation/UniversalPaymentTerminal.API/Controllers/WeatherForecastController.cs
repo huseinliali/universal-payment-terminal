@@ -1,16 +1,59 @@
 using Microsoft.AspNetCore.Mvc;
+using UniversalPaymentTerminal.Application.Services;
+using UniversalPaymentTerminal.Domain.Enums;
 
-namespace UniversalPaymentTerminal.API.Controllers
+namespace UniversalPaymentTerminal.API.Controllers;
+
+[ApiController]
+[Route("api")]
+public class PaymentsController : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class WeatherForecastController : ControllerBase
-    {
-        private static readonly string[] Summaries =
-        [
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        ];
+    private readonly PaymentService _service;
 
-     
+    public PaymentsController(PaymentService service)
+    {
+        _service = service;
+    }
+
+    [HttpGet("payment-categories")]
+    public IActionResult GetCategories() =>
+        Ok(_service.GetCategories());
+
+    [HttpGet("payment-methods")]
+    public IActionResult GetMethods() =>
+        Ok(_service.GetMethods());
+
+    [HttpPost("service-payments/validate")]
+    public async Task<IActionResult> Validate(
+        [FromBody] ValidateRequest request)
+    {
+        var result = await _service.ValidateAsync(
+            request.ProviderId,
+            request.CustomerIdentifier);
+
+        return Ok(result);
+    }
+
+    [HttpPost("payments")]
+    public async Task<IActionResult> Pay(
+        [FromBody] PayRequest request)
+    {
+        var result = await _service.PayAsync(
+            request.ProviderId,
+            request.PaymentMethod,
+            request.Amount,
+            request.Currency);
+
+        return Ok(new { Success = result });
     }
 }
+
+public record ValidateRequest(
+    string ProviderId,
+    string CustomerIdentifier);
+
+public record PayRequest(
+    string ProviderId,
+    PaymentMethodType PaymentMethod,
+    decimal Amount,
+    string Currency);
